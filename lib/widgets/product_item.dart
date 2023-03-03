@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../providers/cart.dart';
 import '../providers/product.dart';
 import '../screens/product_detail_screen.dart';
 
@@ -15,6 +16,7 @@ class ProductItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final chosenProduct = Provider.of<Product>(context, listen: false);
+    final cart = Provider.of<Cart>(context, listen: false);
 
     //*Consumer acts as a listener, alternate method
     return ClipRRect(
@@ -23,8 +25,11 @@ class ProductItem extends StatelessWidget {
         footer: GridTileBar(
           backgroundColor: Colors.black87,
           leading: IconButton(
-            icon: Icon(Icons.shopping_cart),
-            onPressed: () {},
+            icon: const Icon(Icons.shopping_cart),
+            onPressed: () {
+              cart.addItem(
+                  chosenProduct.id, chosenProduct.price, chosenProduct.title);
+            },
             color: Theme.of(context).accentColor,
           ),
           title: Text(
@@ -38,11 +43,11 @@ class ProductItem extends StatelessWidget {
             //*If there is still something which does not need to be changed,
             //*we will write that in child argument and then we can use that
             //*in builder
-            child: Text('Never Changes'),
+            child: const Text('Never Changes'),
             builder: (context, chosenProduct, child) => IconButton(
               icon: chosenProduct.isFavorite
-                  ? Icon(Icons.favorite)
-                  : Icon(Icons.favorite_border),
+                  ? const Icon(Icons.favorite)
+                  : const Icon(Icons.favorite_border),
               onPressed: () {
                 chosenProduct.toggleFavouriteStatus();
               },
