@@ -19,12 +19,12 @@ class ProductsGrid extends StatelessWidget {
     //*Now we can access the methods in the products class, here we used the getter function defined in the
     //*products class
     final products =
-        showFavs ? productsData.favoruiteItems : productsData.items;
+        showFavs ? productsData.favouriteItems : productsData.items;
     return GridView.builder(
       padding: const EdgeInsets.all(10),
       itemCount: products.length,
-      itemBuilder: ((context, index) => ChangeNotifierProvider(
-            create: ((_) => products[index]),
+      itemBuilder: ((context, index) => ChangeNotifierProvider.value(
+            value: products[index],
             child: ProductItem(
                 // id: products[index].id,
                 // title: products[index].title,
