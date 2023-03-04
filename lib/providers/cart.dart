@@ -1,6 +1,7 @@
 import 'dart:ffi';
 
 import 'package:flutter/cupertino.dart';
+import 'package:shop_app/widgets/cart_item.dart';
 
 class SingleCartItem {
   final String id;
@@ -67,6 +68,25 @@ class Cart with ChangeNotifier {
       total += value.price * value.quantity;
     });
     return total;
+  }
+
+  void removeSingleCartItem(String productId) {
+    if (!_items.containsKey(productId)) {
+      return;
+    }
+
+    if (_items[productId]!.quantity > 1) {
+      _items.update(
+          productId,
+          (value) => SingleCartItem(
+              id: value.id,
+              price: value.price,
+              quantity: value.quantity - 1,
+              title: value.title));
+    } else {
+      removeItem(productId);
+    }
+    notifyListeners();
   }
 
   void clear() {
