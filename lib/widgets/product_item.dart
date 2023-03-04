@@ -24,14 +24,35 @@ class ProductItem extends StatelessWidget {
       child: GridTile(
         footer: GridTileBar(
           backgroundColor: Colors.black87,
+
           leading: IconButton(
             icon: const Icon(Icons.shopping_cart),
             onPressed: () {
               cart.addItem(
-                  chosenProduct.id, chosenProduct.price, chosenProduct.title);
+                chosenProduct.id,
+                chosenProduct.price,
+                chosenProduct.title,
+              );
+
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              //*It access the nearest scaffold to this file, here
+              //*Product overview screen
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(
+                  'Added Item to Cart!',
+                ),
+                duration: Duration(seconds: 2),
+                action: SnackBarAction(
+                  label: 'UNDO',
+                  onPressed: () {
+                    cart.removeSingleCartItem(chosenProduct.id);
+                  },
+                ),
+              ));
             },
             color: Theme.of(context).accentColor,
           ),
+
           title: Text(
             chosenProduct.title,
             textAlign: TextAlign.center,

@@ -72,4 +72,9 @@ class Products with ChangeNotifier {
     // _items.add(value);
     notifyListeners();
   }
+
+  void removeProduct(String productId) {
+    _items.remove(productId);
+    notifyListeners();
+  }
 }
