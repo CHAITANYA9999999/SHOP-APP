@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'product.dart';
+import 'package:http/http.dart' as http;
 
 class Products with ChangeNotifier {
   List<Product> _items = [
@@ -73,17 +76,44 @@ class Products with ChangeNotifier {
     notifyListeners();
   }
 
-  void addProduct(Product product) {
-    final newProduct = Product(
-      id: DateTime.now().toString(),
-      title: product.title,
-      description: product.description,
-      price: product.price,
-      imageUrl: product.imageUrl,
-    );
-
-    _items.add(newProduct);
-    notifyListeners();
+  Future<void> addProduct(Product product) {
+    //*Add /products.json in the end
+    final url = Uri.parse(
+        'https://flutter-backend-335b1-default-rtdb.firebaseio.com/products.json');
+    //*JSON = JAVASCRIPT OBJECT NOTATION
+    //* We cannot simply pass product in the body because it is a dart
+    //*object and we need to pass a json object
+    // http.post(url,body: product);
+    //*This only sends the request to upload data to the server, it does
+    //*recieve whether this process was successful or not, it just sends the
+    //* the request and move on to the next line of code. This type is called
+    //*asynchronous, but when we add then it is no longer asynchronous
+    //*It will return the future of.then, i.e., .then of the .then of the post
+    return http
+        .post(url,
+            body: json.encode({
+              'title': product.title,
+              'description': product.description,
+              'price': product.price,
+              'imageUrl': product.imageUrl,
+              'isFavorite': product.isFavorite,
+            }))
+        .then((value) {
+      //*Then function will run when the above process is completed
+      print(json.decode(value.body));
+      final newProduct = Product(
+        id: json.decode(value.body)['name'],
+        title: product.title,
+        description: product.description,
+        price: product.price,
+        imageUrl: product.imageUrl,
+      );
+      _items.add(newProduct);
+      notifyListeners();
+    }).catchError((error) {
+      //*It will run if error is thrown either by post or .then block
+      throw error;
+    });
   }
 
   void updateProduct(Product product, String id) {
