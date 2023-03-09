@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:shop_app/screens/edit_products_screen.dart';
 import 'package:shop_app/widgets/drawer.dart';
 import 'package:shop_app/widgets/user_product_item.dart';
-import '../providers/products_provider.dart';
+import '../providers/products.dart';
 
 class UserProductsScreen extends StatelessWidget {
   static const routeName = '/User-Products-Screen';
@@ -12,20 +12,20 @@ class UserProductsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final productsData = Provider.of<Products>(context);
     return Scaffold(
-      drawer: AppDrawer(),
+      drawer: const AppDrawer(),
       appBar: AppBar(
-        title: Text('Your Products'),
+        title: const Text('Your Products'),
         actions: [
           IconButton(
             onPressed: (() {
               Navigator.of(context).pushNamed(EditProductScreen.routeName);
             }),
-            icon: Icon(Icons.add),
+            icon: const Icon(Icons.add),
           ),
         ],
       ),
       body: Padding(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         child: ListView.builder(
           itemBuilder: ((_, index) {
             return Column(
@@ -33,8 +33,9 @@ class UserProductsScreen extends StatelessWidget {
                 UserProductItem(
                   title: productsData.items[index].title,
                   imageUrl: productsData.items[index].imageUrl,
+                  id: productsData.items[index].id,
                 ),
-                Divider(),
+                const Divider(),
               ],
             );
           }),
