@@ -16,6 +16,7 @@ class UserProductItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final snack = ScaffoldMessenger.of(context);
     return ListTile(
       title: Text(title),
       leading: CircleAvatar(
@@ -34,8 +35,21 @@ class UserProductItem extends StatelessWidget {
               color: Theme.of(context).primaryColor,
             ),
             IconButton(
-              onPressed: (() {
-                Provider.of<Products>(context, listen: false).removeProduct(id);
+              onPressed: (() async {
+                try {
+                  await Provider.of<Products>(context, listen: false)
+                      .removeProduct(id);
+                } catch (error) {
+                  //*Error is coming cause of context in future, since this method is
+                  //*async, therefore this whole function is an instance of future, and
+                  //*when we press it, it is not sure whether this context is
+                  //*still refering to that same context, therefore we store it
+                  //*separately
+                  // ScaffoldMessenger.of(context)
+                  //     .showSnackBar(SnackBar(content: Text('Deletion Failed')));
+                  snack
+                      .showSnackBar(SnackBar(content: Text('Deletion Failed')));
+                }
               }),
               icon: Icon(Icons.delete),
               color: Theme.of(context).errorColor,

@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shop_app/providers/product.dart';
@@ -76,7 +78,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
     super.dispose();
   }
 
-  void _saveForm() {
+  Future<void> _saveForm() async {
     //*We needed to interact with the Form in order to save the data, so
     //*we used a global key and provided it to the form and that key is
     //*of the type FormState, now we can access the form
@@ -94,18 +96,15 @@ class _EditProductScreenState extends State<EditProductScreen> {
       _isLoading = true;
     });
     if (_editedProducted.id != '') {
-      Provider.of<Products>(context, listen: false)
+      await Provider.of<Products>(context, listen: false)
           .updateProduct(_editedProducted, _editedProducted.id);
-      setState(() {
-        _isLoading = false;
-      });
-      Navigator.pop(context);
     } else {
-      Provider.of<Products>(context, listen: false)
-          .addProduct(_editedProducted)
-          .catchError((error) {
+      try {
+        await Provider.of<Products>(context, listen: false)
+            .addProduct(_editedProducted);
+      } catch (error) {
         //*To check this part, remove .json from url
-        return showDialog<Null>(
+        await showDialog(
             context: context,
             builder: ((context) {
               return AlertDialog(
@@ -122,13 +121,18 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 ],
               );
             }));
-      }).then((_) {
-        setState(() {
-          _isLoading = false;
-          Navigator.of(context).pop();
-        });
-      });
+      }
+      // finally {
+      //   setState(() {
+      //     _isLoading = false;
+      //     Navigator.of(context).pop();
+      //   });
+      // }
     }
+    setState(() {
+      _isLoading = false;
+    });
+    Navigator.pop(context);
   }
 
   @override
@@ -299,14 +303,12 @@ class _EditProductScreenState extends State<EditProductScreen> {
                                 width: 1,
                                 color: Colors.grey,
                               )),
-                              child: _imageUrlController.text.isEmpty
-                                  ? const Text('Enter a URL')
-                                  : FittedBox(
-                                      child: Image.network(
-                                        _imageUrlController.text,
-                                      ),
-                                      fit: BoxFit.cover,
-                                    )),
+                              child: FittedBox(
+                                child: Image.network(
+                                  _imageUrlController.text,
+                                ),
+                                fit: BoxFit.contain,
+                              )),
 
                       // Row(
                       //   crossAxisAlignment: CrossAxisAlignment.end,

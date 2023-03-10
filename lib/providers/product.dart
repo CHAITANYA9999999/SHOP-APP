@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class Product with ChangeNotifier {
   final String id;
@@ -17,7 +20,18 @@ class Product with ChangeNotifier {
     this.isFavorite = false,
   });
 
-  void toggleFavouriteStatus() {
+  Future<void> toggleFavouriteStatus() async {
+    final url = Uri.parse(
+        'https://flutter-backend-335b1-default-rtdb.firebaseio.com/products/$id.json');
+    await http.patch(
+      url,
+      body: json.encode(
+        {
+          //*Only these 4 fields could be change while editing a product
+          'isFavorite': !isFavorite,
+        },
+      ),
+    );
     isFavorite = !isFavorite;
 
     //*It act as a setState

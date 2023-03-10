@@ -53,9 +53,12 @@ class ProductItem extends StatelessWidget {
             color: Theme.of(context).accentColor,
           ),
 
-          title: Text(
-            chosenProduct.title,
-            textAlign: TextAlign.center,
+          title: FittedBox(
+            fit: BoxFit.cover,
+            child: Text(
+              chosenProduct.title,
+              textAlign: TextAlign.center,
+            ),
           ),
 
           //*By using consumer widget here, we basically shrinked the area
@@ -69,7 +72,7 @@ class ProductItem extends StatelessWidget {
               icon: chosenProduct.isFavorite
                   ? const Icon(Icons.favorite)
                   : const Icon(Icons.favorite_border),
-              onPressed: () {
+              onPressed: () async {
                 chosenProduct.toggleFavouriteStatus();
               },
               color: Theme.of(context).accentColor,
