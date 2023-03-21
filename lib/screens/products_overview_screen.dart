@@ -4,7 +4,9 @@ import 'package:shop_app/providers/cart.dart';
 import 'package:shop_app/screens/cart_screen.dart';
 import 'package:shop_app/widgets/badge.dart';
 import 'package:shop_app/widgets/drawer.dart';
+import '../providers/product.dart';
 import '../widgets/products_grid.dart';
+import '../providers/products.dart';
 
 enum FilterOptions {
   Favourites,
@@ -18,6 +20,49 @@ class ProductOverview extends StatefulWidget {
 
 class _ProductOverviewState extends State<ProductOverview> {
   var _showOnlyFavourites = false;
+  var _isInit = true;
+  var _isLoading = false;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    //*Providers and modal routes dont work in init state as the widget
+    //*has not been build completely, if we set listen: false, we can use
+    // Provider.of<Products>(context).fetchProduct();
+
+    //*since it is a future, it will mark this as to-do, it will work but
+    //*it will prioritise it differently, so no
+    // Future.delayed(Duration.zero)
+    //     .then((value) => Provider.of<Products>(context).fetchProduct());
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    //*It will run when the widget is fully initialised but before the
+    //*build ran, this will run many time therefore we use a helper variable
+    //*like isInit
+    if (_isInit) {
+      _isLoading = true;
+      Provider.of<Products>(context).fetchProduct().then((_) {
+        setState(() {
+          _isLoading = false;
+        });
+      });
+    }
+    _isInit = false;
+    super.didChangeDependencies();
+  }
+
+  void changeFav(Product product) {
+    _isLoading = true;
+    Provider.of<Product>(context).toggleFavouriteStatus().then((value) {
+      setState(() {
+        _isLoading = false;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,8 +111,12 @@ class _ProductOverviewState extends State<ProductOverview> {
             )
           ],
         ),
-        body: ProductsGrid(
-          showFavs: _showOnlyFavourites,
-        ));
+        body: _isLoading
+            ? Center(
+                child: CircularProgressIndicator(),
+              )
+            : ProductsGrid(
+                showFavs: _showOnlyFavourites,
+              ));
   }
 }
