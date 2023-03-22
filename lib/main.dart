@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shop_app/screens/edit_products_screen.dart';
-import 'package:shop_app/screens/user_products_screen.dart';
+import 'package:shop_app/providers/auth.dart';
+import 'package:shop_app/providers/product.dart';
+import 'package:shop_app/screens/splash_screen.dart';
+import './screens/auth_screen.dart';
+import './screens/edit_products_screen.dart';
+import './screens/user_products_screen.dart';
 import './providers/cart.dart';
 import './providers/orders.dart';
 import './screens/cart_screen.dart';
@@ -24,28 +28,69 @@ class MyApp extends StatelessWidget {
     //*MaterialApp will not be rebuild
     // create: (ctx) => Products(),
     return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => Products()),
-        ChangeNotifierProvider(create: (_) => Cart()),
-        ChangeNotifierProvider(create: (_) => Orders()),
-      ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'MyShop',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          accentColor: Colors.deepOrange,
-          fontFamily: 'Lato',
-        ),
-        home: ProductOverview(),
-        routes: {
-          ProductDetailScreen.routeName: (context) => ProductDetailScreen(),
-          CartScreen.routeName: (context) => CartScreen(),
-          OrderScreen.routeName: (context) => OrderScreen(),
-          UserProductsScreen.routeName: (context) => UserProductsScreen(),
-          EditProductScreen.routeName: (context) => EditProductScreen(),
-        },
-      ),
-    );
+        providers: [
+          ChangeNotifierProvider(create: ((_) => Auth())),
+
+          //*It is a provider which dependent on another provider
+          // ChangeNotifierProvider(create: (_) => Products(Provider.of<Auth>(context).token as String)),
+          ChangeNotifierProxyProvider<Auth, Products>(
+              //*it will create
+              create: (ctx) => Products('', [], ''),
+              //*It will update
+              update: ((context, auth, previousProducts) {
+                return (auth.token == null)
+                    ? Products('', [], '')
+                    : Products(
+                        auth.token!,
+                        previousProducts == null ? [] : previousProducts.items,
+                        auth.userId!);
+              })),
+
+          ChangeNotifierProvider(create: (_) => Cart()),
+
+          ChangeNotifierProxyProvider<Auth, Orders>(
+              create: (_) => Orders('', [], ''),
+              update: ((context, auth, previousOrders) {
+                return Orders(
+                    auth.token!,
+                    previousOrders == null ? [] : previousOrders.orders,
+                    auth.userId!);
+              }))
+        ],
+        child: Consumer<Auth>(
+          builder: (ctx, auth, _) {
+            // print(auth.isAuth);
+            return MaterialApp(
+              debugShowCheckedModeBanner: false,
+              title: 'MyShop',
+              theme: ThemeData(
+                primarySwatch: Colors.blue,
+                accentColor: Colors.deepOrange,
+                fontFamily: 'Lato',
+              ),
+              home: auth.isAuth == true
+                  ? ProductOverviewScreen()
+                  : FutureBuilder(
+                      future: auth.tryAutoLogin(),
+                      builder: (ctx, authResultSnapshot) =>
+                          authResultSnapshot.connectionState ==
+                                  ConnectionState.waiting
+                              ? SplashScreen()
+                              : AuthScreen(),
+                    ),
+              routes: {
+                ProductDetailScreen.routeName: (context) =>
+                    ProductDetailScreen(),
+                CartScreen.routeName: (context) => CartScreen(),
+                OrderScreen.routeName: (context) => OrderScreen(),
+                UserProductsScreen.routeName: (context) => UserProductsScreen(),
+                EditProductScreen.routeName: (context) => EditProductScreen(),
+                AuthScreen.routeName: (context) => AuthScreen(),
+                ProductOverviewScreen.routeName: (context) =>
+                    ProductOverviewScreen(),
+              },
+            );
+          },
+        ));
   }
 }

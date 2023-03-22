@@ -13,12 +13,13 @@ enum FilterOptions {
   All,
 }
 
-class ProductOverview extends StatefulWidget {
+class ProductOverviewScreen extends StatefulWidget {
+  static const routeName = '/product-overview-screen';
   @override
-  State<ProductOverview> createState() => _ProductOverviewState();
+  State<ProductOverviewScreen> createState() => _ProductOverviewScreenState();
 }
 
-class _ProductOverviewState extends State<ProductOverview> {
+class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
   var _showOnlyFavourites = false;
   var _isInit = true;
   var _isLoading = false;
@@ -55,14 +56,14 @@ class _ProductOverviewState extends State<ProductOverview> {
     super.didChangeDependencies();
   }
 
-  void changeFav(Product product) {
-    _isLoading = true;
-    Provider.of<Product>(context).toggleFavouriteStatus().then((value) {
-      setState(() {
-        _isLoading = false;
-      });
-    });
-  }
+  // void changeFav(Product product) {
+  //   _isLoading = true;
+  //   Provider.of<Product>(context).toggleFavouriteStatus().then((value) {
+  //     setState(() {
+  //       _isLoading = false;
+  //     });
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {

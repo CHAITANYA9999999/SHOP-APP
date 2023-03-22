@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shop_app/models/http_exception_.dart';
 import 'package:shop_app/providers/auth.dart';
+import 'package:shop_app/screens/products_overview_screen.dart';
 
 enum AuthMode { Signup, Login }
 
@@ -111,7 +112,7 @@ class _AuthCardState extends State<AuthCard> {
   var _isLoading = false;
   final _passwordController = TextEditingController();
 
-  void _showErrorDialog(String message, Function? function) {
+  void _showErrorDialog(String message) {
     showDialog(
         context: context,
         builder: ((context) {
@@ -153,7 +154,25 @@ class _AuthCardState extends State<AuthCard> {
           _authData['email']!,
           _authData['password']!,
         );
+        showDialog(
+            context: context,
+            builder: ((context) {
+              return AlertDialog(
+                title: Text('SUCCESS'),
+                content: Text('Account successfully created'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('OK'),
+                  )
+                ],
+              );
+            }));
       }
+      Navigator.of(context)
+          .pushReplacementNamed(ProductOverviewScreen.routeName);
     }
     //*This exception is only thrown when there is problem in validation of the data
     on HttpException catch (error) {
@@ -195,13 +214,15 @@ class _AuthCardState extends State<AuthCard> {
         } else if (error.toString().contains('INVALID_PASSWORD')) {
           errorMessage = 'The password entered is not correct';
         }
-        _showErrorDialog(errorMessage, null);
+        _showErrorDialog(errorMessage);
       }
     }
     //*This will be thrown for all the remaining errors
     catch (error) {
-      const errorMessage = 'Could not authenticate, Please try again later';
-      _showErrorDialog(errorMessage, null);
+      print(error);
+      String errorMessage =
+          'Could not authenticate, Please try again later $error';
+      _showErrorDialog(errorMessage);
     }
 
     setState(() {
