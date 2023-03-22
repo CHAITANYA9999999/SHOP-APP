@@ -20,6 +20,10 @@ class SingleOrderItem {
 
 class Orders with ChangeNotifier {
   List<SingleOrderItem> _orders = [];
+  final String authToken;
+  final String userId;
+
+  Orders(this.authToken, this._orders, this.userId);
 
   List<SingleOrderItem> get orders {
     return [..._orders];
@@ -32,7 +36,7 @@ class Orders with ChangeNotifier {
   Future<void> addOrder(List<SingleCartItem> cartProducts, double total) async {
     final date = DateTime.now();
     final url = Uri.parse(
-        'https://flutter-backend-335b1-default-rtdb.firebaseio.com/orders.json');
+        'https://flutter-backend-335b1-default-rtdb.firebaseio.com/orders/$userId.json?auth=$authToken');
     final response = await http.post(url,
         body: json.encode({
           'amount': total,
@@ -59,7 +63,7 @@ class Orders with ChangeNotifier {
 
   Future<void> fetchOrders() async {
     final url = Uri.parse(
-        'https://flutter-backend-335b1-default-rtdb.firebaseio.com/orders.json');
+        'https://flutter-backend-335b1-default-rtdb.firebaseio.com/orders/$userId.json?auth=$authToken');
     var response = await http.get(url);
     print(json.decode(response.body));
 

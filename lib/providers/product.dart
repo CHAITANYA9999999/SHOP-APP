@@ -20,10 +20,10 @@ class Product with ChangeNotifier {
     this.isFavorite = false,
   });
 
-  Future<void> toggleFavouriteStatus() async {
+  Future<void> toggleFavouriteStatus(String authToken, String userId) async {
     final url = Uri.parse(
-        'https://flutter-backend-335b1-default-rtdb.firebaseio.com/products/$id.json');
-    await http.patch(
+        'https://flutter-backend-335b1-default-rtdb.firebaseio.com/userFavourites/$userId/$id.json?auth=$authToken');
+    await http.put(
       url,
       body: json.encode(
         {

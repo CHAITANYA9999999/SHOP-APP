@@ -41,7 +41,12 @@ class Products with ChangeNotifier {
     // ),
   ];
 
-  var _showFavouritesOnly = false;
+  // var _showFavouritesOnly = false;
+
+  final String authToken;
+  final String userId;
+
+  Products(this.authToken, this._items, this.userId);
 
   List<Product> get items {
     // if (_showFavouritesOnly) {
@@ -74,7 +79,7 @@ class Products with ChangeNotifier {
 
   Future<void> removeProduct(String productId) async {
     final url = Uri.parse(
-        'https://flutter-backend-335b1-default-rtdb.firebaseio.com/products/$productId.json');
+        'https://flutter-backend-335b1-default-rtdb.firebaseio.com/products/$productId.json?auth=$authToken');
     final existingProductIndex =
         _items.indexWhere((element) => productId == element.id);
     Product? existingProduct = _items[existingProductIndex];
@@ -135,8 +140,13 @@ class Products with ChangeNotifier {
 
   //*A more better way to deal with future and stuff
   Future<void> addProduct(Product product) async {
+    //*We added auth=authToken to let the firebase know that there is a user present, so please
+    //*give us the access to the backend. Then we added &orderBy="createrId"&equalTo="$userId"
+    //*which means that it will only fetch those orders which belong to that specific user with
+    //*that userId. Instead of fetching all the orders from the backend and then filtering according to
+    //*the user, we instead only fetched those orders which belong to that user
     final url = Uri.parse(
-        'https://flutter-backend-335b1-default-rtdb.firebaseio.com/products.json');
+        'https://flutter-backend-335b1-default-rtdb.firebaseio.com/products.json?auth=$authToken');
     try {
       //*await automatically returns a future
       final response = await http.post(url,
@@ -145,9 +155,13 @@ class Products with ChangeNotifier {
             'description': product.description,
             'price': product.price,
             'imageUrl': product.imageUrl,
-            'isFavorite': product.isFavorite,
+            // 'isFavorite': product.isFavorite,
+            'createrId': userId,
           }));
-
+      // print(response);
+      // print(authToken);
+      // print(json.decode(response.body));
+      // print(json.decode(response.body)['name']);
       final newProduct = Product(
         id: json.decode(response.body)['name'],
         title: product.title,
@@ -169,7 +183,7 @@ class Products with ChangeNotifier {
       //*We do not need to target all the products but only the one we are
       //*updating
       final url = Uri.parse(
-          'https://flutter-backend-335b1-default-rtdb.firebaseio.com/products/$id.json');
+          'https://flutter-backend-335b1-default-rtdb.firebaseio.com/products/$id.json?auth=$authToken');
       await http.patch(
         url,
         body: json.encode(
@@ -187,26 +201,46 @@ class Products with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> fetchProduct() async {
+  Future<void> fetchProduct([bool filterByUser = false]) async {
+    final filterstring =
+        filterByUser ? 'orderBy="createrId"&equalTo="$userId"' : '';
     final url = Uri.parse(
-        'https://flutter-backend-335b1-default-rtdb.firebaseio.com/products.json');
+        'https://flutter-backend-335b1-default-rtdb.firebaseio.com/products.json?auth=$authToken&$filterstring');
 
     try {
       final response = await http.get(url);
-      // print(json.decode(response.body));
+      print(json.decode(response.body));
       final extractedData = json.decode(response.body) as Map<String, dynamic>;
       if (extractedData == null) {
         return;
       } else {
+        final favouriteStatus = await http.get(
+          Uri.parse(
+              'https://flutter-backend-335b1-default-rtdb.firebaseio.com/userFavourites/$userId.json?auth=$authToken'),
+        );
+        final favourite = json.decode(favouriteStatus.body);
+        print(favourite);
         List<Product> extractedProducts = [];
         extractedData.forEach((prodId, prodData) {
+          print(favourite == null
+              ? false
+              : favourite[prodId] != null
+                  ? favourite[prodId]['isFavorite']
+                  : false);
           extractedProducts.add(Product(
             id: prodId,
             title: prodData['title'],
             description: prodData['description'],
             price: prodData['price'],
             imageUrl: prodData['imageUrl'],
-            isFavorite: prodData['isFavorite'],
+            isFavorite: favourite == null
+                ? false
+                : (favourite[prodId] != null
+                    ? (favourite[prodId]['isFavorite'].toString() == 'true'
+                        ? true
+                        : false)
+                    : false),
+            // isFavorite: json.decode(favouriteStatus.body),
           ));
         });
         _items = extractedProducts;
